@@ -6,7 +6,6 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-print("GROQ KEY LOADED:", GROQ_API_KEY)
 
 GARDEN_SYSTEM_PROMPT = """You are GardenBot 🌱, an expert gardening AI assistant.
 Help with plant care, diseases, watering advice, and gardening tips.
