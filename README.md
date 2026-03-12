@@ -104,9 +104,3 @@ API docs available at: **http://localhost:8000/docs**
 
 ---
 
-## 💡 Resume Talking Points
-- Built async REST API with FastAPI and Motor (async MongoDB driver)
-- Integrated OpenAI GPT-4o for plant recommendations and health diagnosis
-- Implemented multipart file upload for plant photo analysis
-- Designed MongoDB collections for plants, schedules, chat history, and health logs
-- Full CRUD operations with proper error handling
