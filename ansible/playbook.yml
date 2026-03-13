@@ -1,45 +1,40 @@
 ---
 - name: Deploy Smart Garden Planner
-  hosts: azure
+  hosts: localhost
   gather_facts: false
 
   vars:
-    image: smartgardenacr.azurecr.io/smart-garden:latest
-    container_name: smart-garden-app
-    acr_name: smartgardenacr
+    image: "smartgardenacr.azurecr.io/smart-garden:latest"
+    container_name: "smart-garden-app"
+    resource_group: "smart-garden-rg"
+    acr_name: "smartgardenacr"
 
   tasks:
-    - name: Login to Azure
-      command: az login --service-principal
-        -u "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
-        -p "{{ lookup('env', 'AZURE_CLIENT_SECRET') }}"
-        --tenant "{{ lookup('env', 'AZURE_TENANT_ID') }}"
+    - name: Get ACR username
+      command: az acr credential show --name smartgardenacr --query "username" -o tsv
+      register: acr_username
 
-    - name: Login to ACR
-      command: >
-        az acr login --name {{ acr_name }}
-        --expose-token
+    - name: Get ACR password
+      command: az acr credential show --name smartgardenacr --query "passwords[0].value" -o tsv
+      register: acr_password
 
-    - name: Pull latest Docker image
-      command: docker pull {{ image }}
-
-    - name: Stop existing container
+    - name: Delete existing container
       command: >
         az container delete
         --name {{ container_name }}
-        --resource-group smart-garden-rg
+        --resource-group {{ resource_group }}
         --yes
       ignore_errors: true
 
     - name: Deploy new container
       command: >
         az container create
-        --resource-group smart-garden-rg
+        --resource-group {{ resource_group }}
         --name {{ container_name }}
         --image {{ image }}
         --registry-login-server smartgardenacr.azurecr.io
-        --registry-username {{ lookup('env', 'ACR_USERNAME') }}
-        --registry-password {{ lookup('env', 'ACR_PASSWORD') }}
+        --registry-username {{ acr_username.stdout }}
+        --registry-password {{ acr_password.stdout }}
         --dns-name-label smart-garden-app
         --ports 8000
         --environment-variables
@@ -48,6 +43,7 @@
         --os-type Linux
         --cpu 1
         --memory 2
+        --location centralindia
 
     - name: Show app URL
       debug:
