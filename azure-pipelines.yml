@@ -41,7 +41,7 @@ stages:
         - task: AzureCLI@2
           displayName: Login and push to ACR
           inputs:
-            azureSubscription: azure-service-connection   # ✅ changed here
+            azureSubscription: azure-service-connection
             scriptType: bash
             scriptLocation: inlineScript
             inlineScript: |
@@ -59,20 +59,13 @@ stages:
       pool:
         name: my-local-agent
       steps:
-        - script: |
-            sudo apt update
-            sudo apt install ansible -y
-          displayName: Install Ansible
-
         - task: AzureCLI@2
           displayName: Run Ansible Playbook
           inputs:
-            azureSubscription: azure-service-connection   # ✅ changed here
+            azureSubscription: azure-service-connection
             scriptType: bash
             scriptLocation: inlineScript
             inlineScript: |
-              export ACR_USERNAME=$(az acr credential show --name $(ACR_NAME) --query "username" -o tsv)
-              export ACR_PASSWORD=$(az acr credential show --name $(ACR_NAME) --query "passwords[0].value" -o tsv)
               export GROQ_API_KEY=$(GROQ_API_KEY)
               export MONGO_URL=$(MONGO_URL)
               ansible-playbook ansible/playbook.yml -i ansible/inventory.ini
