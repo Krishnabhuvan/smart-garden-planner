@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🌿 GardenMind — Smart Garden Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --sage:    #7a9e7e;
+    --forest:  #2d5a27;
+    --moss:    #4a7c59;
+    --cream:   #f5f0e8;
+    --warm:    #e8dcc8;
+    --earth:   #8b6f47;
+    --leaf:    #a8c5a0;
+    --dark:    #1a2e1a;
+    --accent:  #c8a94a;
+    --danger:  #c0392b;
+    --blue:    #5b8fb9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark);
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── Background ──────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(74,124,89,.25) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 80%, rgba(45,90,39,.3) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #1a2e1a 0%, #0d1a0d 100%);
+    pointer-events: none;
+  }
+
+  /* ─── Layout ──────────────────────────── */
+  .app { position: relative; z-index: 1; display: flex; height: 100vh; }
+
+  /* ─── Sidebar ─────────────────────────── */
+  .sidebar {
+    width: 240px; flex-shrink: 0;
+    background: rgba(10,20,10,.7);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(122,158,126,.15);
+    display: flex; flex-direction: column;
+    padding: 28px 0;
+  }
+
+  .logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid rgba(122,158,126,.15);
+  }
+  .logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 900;
+    color: var(--leaf);
+    line-height: 1.1;
+  }
+  .logo span { color: var(--accent); }
+  .logo p { font-size: 11px; color: rgba(245,240,232,.4); margin-top: 4px; letter-spacing: .08em; text-transform: uppercase; }
+
+  nav { flex: 1; padding: 20px 12px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px; border-radius: 10px; margin-bottom: 4px;
+    cursor: pointer; font-size: 14px; font-weight: 500;
+    color: rgba(245,240,232,.55);
+    transition: all .2s;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: rgba(122,158,126,.1); color: var(--cream); }
+  .nav-item.active {
+    background: rgba(122,158,126,.18);
+    color: var(--leaf);
+    border-color: rgba(122,158,126,.25);
+  }
+  .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(122,158,126,.15);
+    font-size: 11px; color: rgba(245,240,232,.3);
+  }
+
+  /* ─── Main ────────────────────────────── */
+  .main { flex: 1; overflow-y: auto; padding: 36px 40px; }
+
+  .page { display: none; animation: fadeIn .3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .page-header { margin-bottom: 32px; }
+  .page-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 700;
+    color: var(--cream);
+  }
+  .page-header p { color: rgba(245,240,232,.5); font-size: 14px; margin-top: 6px; }
+
+  /* ─── Cards ───────────────────────────── */
+  .card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(122,158,126,.15);
+    border-radius: 16px; padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  /* ─── Form ────────────────────────────── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 7px; }
+  .form-group label { font-size: 12px; font-weight: 500; color: rgba(245,240,232,.5); text-transform: uppercase; letter-spacing: .06em; }
+  .form-group select,
+  .form-group input,
+  .form-group textarea {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(122,158,126,.2);
+    border-radius: 10px; padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    color: var(--cream); outline: none;
+    transition: border-color .2s;
+  }
+  .form-group select:focus,
+  .form-group input:focus,
+  .form-group textarea:focus { border-color: var(--sage); }
+  .form-group select option { background: #1a2e1a; }
+
+  /* ─── Buttons ─────────────────────────── */
+  .btn {
+    padding: 11px 22px; border-radius: 10px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary { background: var(--moss); color: #fff; }
+  .btn-primary:hover { background: var(--sage); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,124,89,.3); }
+  .btn-outline { background: transparent; color: var(--leaf); border: 1px solid rgba(122,158,126,.35); }
+  .btn-outline:hover { background: rgba(122,158,126,.1); }
+  .btn-sm { padding: 7px 14px; font-size: 13px; }
+  .btn-danger { background: rgba(192,57,43,.15); color: #e74c3c; border: 1px solid rgba(192,57,43,.3); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+  /* ─── Plant Cards Grid ────────────────── */
+  .plants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 20px; }
+
+  .plant-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(122,158,126,.15);
+    border-radius: 14px; padding: 20px;
+    transition: all .25s;
+    position: relative; overflow: hidden;
+  }
+  .plant-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--moss), var(--accent));
+  }
+  .plant-card:hover { border-color: rgba(122,158,126,.35); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.3); }
+  .plant-card h3 { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--cream); margin-bottom: 4px; }
+  .plant-card .scientific { font-size: 12px; color: rgba(245,240,232,.35); font-style: italic; margin-bottom: 10px; }
+  .plant-card p { font-size: 13px; color: rgba(245,240,232,.6); line-height: 1.5; margin-bottom: 14px; }
+  .plant-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+  .badge {
+    padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+    background: rgba(122,158,126,.15); color: var(--leaf); border: 1px solid rgba(122,158,126,.2);
+  }
+  .badge.easy   { background: rgba(46,204,113,.1); color: #2ecc71; border-color: rgba(46,204,113,.2); }
+  .badge.medium { background: rgba(200,169,74,.1); color: var(--accent); border-color: rgba(200,169,74,.2); }
+  .badge.hard   { background: rgba(192,57,43,.1); color: #e74c3c; border-color: rgba(192,57,43,.2); }
+
+  /* ─── Watering ────────────────────────── */
+  .watering-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+  .watering-item {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(122,158,126,.15);
+    border-radius: 12px; padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .watering-info h4 { font-size: 15px; font-weight: 500; color: var(--cream); }
+  .watering-info p { font-size: 13px; color: rgba(245,240,232,.45); margin-top: 3px; }
+  .status-badge {
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  }
+  .status-overdue  { background: rgba(192,57,43,.15); color: #e74c3c; border: 1px solid rgba(192,57,43,.2); }
+  .status-due_today{ background: rgba(200,169,74,.15); color: var(--accent); border: 1px solid rgba(200,169,74,.2); }
+  .status-upcoming { background: rgba(122,158,126,.15); color: var(--leaf); border: 1px solid rgba(122,158,126,.2); }
+
+  /* ─── Chat ────────────────────────────── */
+  .chat-container { display: flex; flex-direction: column; height: calc(100vh - 200px); }
+  .chat-messages {
+    flex: 1; overflow-y: auto; padding: 20px;
+    background: rgba(0,0,0,.2); border-radius: 14px;
+    border: 1px solid rgba(122,158,126,.12);
+    margin-bottom: 16px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: rgba(122,158,126,.3); border-radius: 2px; }
+
+  .msg { max-width: 75%; }
+  .msg.user { align-self: flex-end; }
+  .msg.bot  { align-self: flex-start; }
+  .msg-bubble {
+    padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.6;
+  }
+  .msg.user .msg-bubble {
+    background: var(--moss); color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.bot .msg-bubble {
+    background: rgba(255,255,255,.07);
+    color: var(--cream);
+    border: 1px solid rgba(122,158,126,.18);
+    border-bottom-left-radius: 4px;
+  }
+  .msg-time { font-size: 11px; color: rgba(245,240,232,.3); margin-top: 5px; text-align: right; }
+  .msg.bot .msg-time { text-align: left; }
+
+  .chat-input-row { display: flex; gap: 10px; }
+  .chat-input-row input {
+    flex: 1;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(122,158,126,.2);
+    border-radius: 10px; padding: 13px 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    color: var(--cream); outline: none;
+  }
+  .chat-input-row input:focus { border-color: var(--sage); }
+
+  .typing { display: flex; align-items: center; gap: 6px; padding: 14px 16px; }
+  .typing span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--sage); display: inline-block;
+    animation: bounce .8s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: .15s; }
+  .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  /* ─── Health ──────────────────────────── */
+  .upload-zone {
+    border: 2px dashed rgba(122,158,126,.3); border-radius: 14px;
+    padding: 40px; text-align: center; cursor: pointer;
+    transition: all .2s; margin-bottom: 20px;
+  }
+  .upload-zone:hover { border-color: var(--sage); background: rgba(122,158,126,.05); }
+  .upload-zone .icon { font-size: 42px; margin-bottom: 10px; }
+  .upload-zone p { color: rgba(245,240,232,.4); font-size: 14px; }
+  #file-input { display: none; }
+  #preview-img { max-width: 100%; max-height: 200px; border-radius: 10px; margin-top: 12px; }
+
+  .diagnosis-box {
+    background: rgba(122,158,126,.08);
+    border: 1px solid rgba(122,158,126,.2);
+    border-radius: 12px; padding: 20px; margin-top: 20px;
+    font-size: 14px; line-height: 1.7; color: rgba(245,240,232,.85);
+    white-space: pre-wrap;
+  }
+
+  /* ─── Stats Row ───────────────────────── */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(122,158,126,.15);
+    border-radius: 14px; padding: 20px 22px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .stat-icon { font-size: 30px; }
+  .stat-info label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: rgba(245,240,232,.35); }
+  .stat-info .stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--leaf); }
+
+  /* ─── Toast ───────────────────────────── */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    background: var(--moss); color: #fff;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 14px; font-weight: 500;
+    transform: translateY(80px); opacity: 0;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none; max-width: 340px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: var(--danger); }
+
+  /* ─── Loading ─────────────────────────── */
+  .loading {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+    border-radius: 50%; animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Empty ───────────────────────────── */
+  .empty-state { text-align: center; padding: 60px 20px; color: rgba(245,240,232,.3); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 14px; }
+  .empty-state p { font-size: 15px; }
+
+  /* ─── Scrollbar global ────────────────── */
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: rgba(122,158,126,.2); border-radius: 2px; }
+
+  /* ─── Log list ────────────────────────── */
+  .log-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .log-item {
+    background: rgba(255,255,255,.04); border: 1px solid rgba(122,158,126,.15);
+    border-radius: 12px; padding: 14px 18px;
+  }
+  .log-item h4 { font-size: 14px; font-weight: 500; color: var(--leaf); margin-bottom: 6px; }
+  .log-item p { font-size: 13px; color: rgba(245,240,232,.55); line-height: 1.5; }
+  .log-item .log-date { font-size: 11px; color: rgba(245,240,232,.25); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>Garden<span>Mind</span></h1>
+      <p>AI-Powered Planner</p>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon">🏡</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('suggest')">
+        <span class="nav-icon">🌱</span> Plant Finder
+      </div>
+      <div class="nav-item" onclick="showPage('garden')">
+        <span class="nav-icon">🪴</span> My Garden
+      </div>
+      <div class="nav-item" onclick="showPage('watering')">
+        <span class="nav-icon">💧</span> Watering
+      </div>
+      <div class="nav-item" onclick="showPage('chat')">
+        <span class="nav-icon">🤖</span> AI Assistant
+      </div>
+      <div class="nav-item" onclick="showPage('health')">
+        <span class="nav-icon">🔬</span> Health Check
+      </div>
+    </nav>
+    <div class="sidebar-footer">Connected to FastAPI + MongoDB</div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h2>Welcome back 🌿</h2>
+        <p>Here's an overview of your garden</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-icon">🪴</span>
+          <div class="stat-info"><label>My Plants</label><div class="stat-val" id="stat-plants">—</div></div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">💧</span>
+          <div class="stat-info"><label>Due Watering</label><div class="stat-val" id="stat-water">—</div></div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🔬</span>
+          <div class="stat-info"><label>Health Logs</label><div class="stat-val" id="stat-health">—</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;color:var(--leaf)">🌡️ Plants Due for Watering</h3>
+        <div id="due-list"><div class="loading"></div></div>
+      </div>
+    </div>
+
+    <!-- Plant Finder -->
+    <div class="page" id="page-suggest">
+      <div class="page-header">
+        <h2>🌱 Plant Finder</h2>
+        <p>Get AI-powered plant suggestions for your location and conditions</p>
+      </div>
+      <div class="card" style="margin-bottom:24px">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Your Location</label>
+            <input type="text" id="location" placeholder="e.g. Bangalore, India" />
+          </div>
+          <div class="form-group">
+            <label>Climate</label>
+            <select id="climate">
+              <option value="tropical">Tropical</option>
+              <option value="arid">Arid / Dry</option>
+              <option value="temperate">Temperate</option>
+              <option value="continental">Continental</option>
+              <option value="mediterranean">Mediterranean</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Available Space</label>
+            <select id="space">
+              <option value="balcony">Balcony</option>
+              <option value="indoor">Indoor</option>
+              <option value="small garden">Small Garden</option>
+              <option value="large garden">Large Garden</option>
+              <option value="terrace">Terrace / Rooftop</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Experience Level</label>
+            <select id="experience">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="expert">Expert</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:18px">
+          <button class="btn btn-primary" onclick="suggestPlants()" id="suggest-btn">
+            ✨ Get Plant Suggestions
+          </button>
+        </div>
+      </div>
+      <div id="suggestions-result"></div>
+    </div>
+
+    <!-- My Garden -->
+    <div class="page" id="page-garden">
+      <div class="page-header">
+        <h2>🪴 My Garden</h2>
+        <p>All the plants you've added to your personal garden</p>
+      </div>
+      <div id="my-garden-list"><div class="loading"></div></div>
+    </div>
+
+    <!-- Watering -->
+    <div class="page" id="page-watering">
+      <div class="page-header">
+        <h2>💧 Watering Schedules</h2>
+        <p>Never forget to water your plants</p>
+      </div>
+      <div class="card" style="margin-bottom:24px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:16px;color:var(--leaf)">Add New Schedule</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Plant Name</label>
+            <input type="text" id="w-plant" placeholder="e.g. Tomato" />
+          </div>
+          <div class="form-group">
+            <label>Water Every (days)</label>
+            <input type="number" id="w-freq" placeholder="e.g. 3" min="1" max="30" />
+          </div>
+          <div class="form-group" style="grid-column:span 2">
+            <label>Notes (optional)</label>
+            <input type="text" id="w-notes" placeholder="e.g. Morning watering preferred" />
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn btn-primary btn-sm" onclick="addSchedule()">💧 Add Schedule</button>
+        </div>
+      </div>
+      <div id="watering-list"><div class="loading"></div></div>
+    </div>
+
+    <!-- Chat -->
+    <div class="page" id="page-chat">
+      <div class="page-header">
+        <h2>🤖 AI Garden Assistant</h2>
+        <p>Ask anything about plants, pests, watering, and more</p>
+      </div>
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg bot">
+            <div class="msg-bubble">
+              Hello! 🌱 I'm GardenBot, your AI gardening expert. Ask me anything — plant care, pest control, watering schedules, soil tips, and more!
+            </div>
+            <div class="msg-time">Just now</div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Ask about your plants..." onkeydown="if(event.key==='Enter') sendChat()" />
+          <button class="btn btn-primary" onclick="sendChat()" id="chat-btn">Send ➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Check -->
+    <div class="page" id="page-health">
+      <div class="page-header">
+        <h2>🔬 Plant Health Check</h2>
+        <p>Upload a photo or describe symptoms for AI diagnosis</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div>
+          <div class="card">
+            <div class="form-group" style="margin-bottom:16px">
+              <label>Plant Name</label>
+              <input type="text" id="h-plant" placeholder="e.g. Rose, Tomato" />
+            </div>
+            <div class="form-group" style="margin-bottom:16px">
+              <label>Describe Symptoms</label>
+              <textarea id="h-symptoms" rows="3" placeholder="e.g. Yellow leaves, brown spots, wilting..."></textarea>
+            </div>
+            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+              <div class="icon">📷</div>
+              <p>Click to upload a photo (optional)</p>
+              <img id="preview-img" style="display:none"/>
+            </div>
+            <input type="file" id="file-input" accept="image/*" onchange="previewImage(event)"/>
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="analyzeHealth()" id="health-btn">
+              🔍 Analyze Plant Health
+            </button>
+          </div>
+        </div>
+        <div>
+          <div id="diagnosis-result"></div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--leaf);margin:20px 0 12px">Recent Logs</h3>
+          <div id="health-logs"><div class="loading"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.origin + '/api';
+
+// ─── Navigation ────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'garden')   loadMyGarden();
+  if (id === 'watering') loadSchedules();
+  if (id === 'chat')     loadChatHistory();
+  if (id === 'health')   loadHealthLogs();
+  if (id === 'dashboard') loadDashboard();
+}
+
+// ─── Toast ─────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+// ─── Dashboard ─────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [plants, due, health] = await Promise.all([
+      fetch(`${API}/plants/my-garden`).then(r=>r.json()),
+      fetch(`${API}/watering/due-today`).then(r=>r.json()),
+      fetch(`${API}/health/logs`).then(r=>r.json()),
+    ]);
+    document.getElementById('stat-plants').textContent = plants.count ?? 0;
+    document.getElementById('stat-water').textContent  = due.count ?? 0;
+    document.getElementById('stat-health').textContent = health.count ?? 0;
+
+    const dueList = document.getElementById('due-list');
+    if (!due.due_plants?.length) {
+      dueList.innerHTML = '<p style="color:rgba(245,240,232,.4);font-size:14px">✅ All plants are watered! Great job.</p>';
+    } else {
+      dueList.innerHTML = due.due_plants.map(p => `
+        <div class="watering-item">
+          <div class="watering-info">
+            <h4>${p.plant_name}</h4>
+            <p>Every ${p.frequency_days} days</p>
+          </div>
+          <span class="status-badge status-${p.status}">${p.status.replace('_',' ')}</span>
+          <button class="btn btn-primary btn-sm" onclick="logWatering('${p._id}')">✅ Watered</button>
+        </div>`).join('');
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ─── Plant Finder ──────────────────────────────────────────────
+async function suggestPlants() {
+  const btn = document.getElementById('suggest-btn');
+  const location   = document.getElementById('location').value.trim() || 'Bangalore, India';
+  const climate    = document.getElementById('climate').value;
+  const space      = document.getElementById('space').value;
+  const experience = document.getElementById('experience').value;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span> Finding Plants...';
+  document.getElementById('suggestions-result').innerHTML = '';
+
+  try {
+    const res  = await fetch(`${API}/plants/suggest`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ location, climate, available_space: space, experience_level: experience })
+    });
+    const data = await res.json();
+    const plants = data.suggestions;
+
+    if (!plants?.length) {
+      document.getElementById('suggestions-result').innerHTML = '<p style="color:rgba(245,240,232,.4)">No suggestions returned. Try again.</p>';
+      return;
+    }
+
+    document.getElementById('suggestions-result').innerHTML = `
+      <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:4px;color:var(--cream)">
+        Suggested for ${location}
+      </h3>
+      <p style="font-size:13px;color:rgba(245,240,232,.4);margin-bottom:16px">${plants.length} plants matched your conditions</p>
+      <div class="plants-grid">
+        ${plants.map(p => `
+          <div class="plant-card">
+            <h3>${p.name}</h3>
+            <div class="scientific">${p.scientific_name || ''}</div>
+            <p>${p.description}</p>
+            <div class="plant-meta">
+              <span class="badge">☀️ ${p.sunlight}</span>
+              <span class="badge">💧 ${p.water_frequency}</span>
+              <span class="badge ${(p.difficulty||'').toLowerCase()}">${p.difficulty}</span>
+              <span class="badge">📅 ${p.best_season}</span>
+            </div>
+            <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center" onclick="savePlant(${JSON.stringify(p).replace(/"/g,'&quot;')}, '${location}')">
+              + Add to My Garden
+            </button>
+          </div>`).join('')}
+      </div>`;
+  } catch(e) {
+    toast('Could not connect to API. Is the backend running?', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Get Plant Suggestions';
+  }
+}
+
+async function savePlant(plant, location) {
+  try {
+    await fetch(`${API}/plants/save`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ ...plant, location })
+    });
+    toast(`🌱 ${plant.name} added to your garden!`);
+  } catch(e) { toast('Failed to save plant', 'error'); }
+}
+
+// ─── My Garden ─────────────────────────────────────────────────
+async function loadMyGarden() {
+  const el = document.getElementById('my-garden-list');
+  el.innerHTML = '<div class="loading"></div>';
+  try {
+    const data = await fetch(`${API}/plants/my-garden`).then(r=>r.json());
+    if (!data.plants?.length) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">🌾</div><p>Your garden is empty.<br>Go to Plant Finder to add plants!</p></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="plants-grid">${data.plants.map(p => `
+      <div class="plant-card">
+        <h3>${p.name}</h3>
+        <div class="scientific">${p.scientific_name || ''}</div>
+        <p>${p.description}</p>
+        <div class="plant-meta">
+          <span class="badge">☀️ ${p.sunlight}</span>
+          <span class="badge">💧 ${p.water_frequency}</span>
+          <span class="badge ${(p.difficulty||'').toLowerCase()}">${p.difficulty}</span>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removePlant('${p.name}')">🗑 Remove</button>
+      </div>`).join('')}</div>`;
+  } catch(e) { el.innerHTML = '<p style="color:rgba(245,240,232,.4)">Could not load garden.</p>'; }
+}
+
+async function removePlant(name) {
+  try {
+    await fetch(`${API}/plants/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    toast(`Removed ${name} from your garden`);
+    loadMyGarden();
+  } catch(e) { toast('Failed to remove plant', 'error'); }
+}
+
+// ─── Watering ──────────────────────────────────────────────────
+async function loadSchedules() {
+  const el = document.getElementById('watering-list');
+  el.innerHTML = '<div class="loading"></div>';
+  try {
+    const data = await fetch(`${API}/watering/schedules`).then(r=>r.json());
+    if (!data.schedules?.length) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">💧</div><p>No watering schedules yet.<br>Add one above!</p></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="watering-list">${data.schedules.map(s => `
+      <div class="watering-item">
+        <div class="watering-info">
+          <h4>🌿 ${s.plant_name}</h4>
+          <p>Every ${s.frequency_days} days · Next: ${new Date(s.next_watering).toLocaleDateString()}
+            ${s.notes ? ' · '+s.notes : ''}</p>
+        </div>
+        <span class="status-badge status-${s.status}">${(s.status||'').replace('_',' ')}</span>
+        <button class="btn btn-primary btn-sm" onclick="logWatering('${s._id}')">✅ Watered</button>
+      </div>`).join('')}</div>`;
+  } catch(e) { el.innerHTML = '<p style="color:rgba(245,240,232,.4)">Could not load schedules.</p>'; }
+}
+
+async function addSchedule() {
+  const plant = document.getElementById('w-plant').value.trim();
+  const freq  = parseInt(document.getElementById('w-freq').value);
+  const notes = document.getElementById('w-notes').value.trim();
+  if (!plant || !freq) { toast('Please fill in plant name and frequency', 'error'); return; }
+  try {
+    await fetch(`${API}/watering/schedule`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ plant_name: plant, frequency_days: freq, notes })
+    });
+    toast(`💧 Schedule added for ${plant}!`);
+    document.getElementById('w-plant').value = '';
+    document.getElementById('w-freq').value = '';
+    document.getElementById('w-notes').value = '';
+    loadSchedules();
+  } catch(e) { toast('Failed to add schedule', 'error'); }
+}
+
+async function logWatering(id) {
+  try {
+    const data = await fetch(`${API}/watering/log-watering/${id}`, { method: 'POST' }).then(r=>r.json());
+    toast(data.message || '✅ Watering logged!');
+    loadSchedules(); loadDashboard();
+  } catch(e) { toast('Failed to log watering', 'error'); }
+}
+
+// ─── Chat ──────────────────────────────────────────────────────
+async function loadChatHistory() {
+  try {
+    const data = await fetch(`${API}/chat/history`).then(r=>r.json());
+    const box  = document.getElementById('chat-messages');
+    if (data.history?.length) {
+      data.history.forEach(h => {
+        appendMsg(h.user, 'user');
+        appendMsg(h.bot,  'bot');
+      });
+    }
+  } catch(e) {}
+}
+
+function appendMsg(text, role) {
+  const box = document.getElementById('chat-messages');
+  const el  = document.createElement('div');
+  el.className = 'msg ' + role;
+  el.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>
+    <div class="msg-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>`;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  const box = document.getElementById('chat-messages');
+  const el  = document.createElement('div');
+  el.className = 'msg bot'; el.id = 'typing-indicator';
+  el.innerHTML = `<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  box.appendChild(el); box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const btn   = document.getElementById('chat-btn');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  input.value = ''; btn.disabled = true;
+  appendMsg(msg, 'user');
+  showTyping();
+  try {
+    const data = await fetch(`${API}/chat/message`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ message: msg })
+    }).then(r=>r.json());
+    document.getElementById('typing-indicator')?.remove();
+    appendMsg(data.reply, 'bot');
+  } catch(e) {
+    document.getElementById('typing-indicator')?.remove();
+    appendMsg('⚠️ Could not reach the AI. Is the backend running?', 'bot');
+  } finally { btn.disabled = false; }
+}
+
+// ─── Health ────────────────────────────────────────────────────
+function previewImage(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const img = document.getElementById('preview-img');
+  img.src = URL.createObjectURL(file); img.style.display = 'block';
+}
+
+async function analyzeHealth() {
+  const plant    = document.getElementById('h-plant').value.trim();
+  const symptoms = document.getElementById('h-symptoms').value.trim();
+  const fileInput= document.getElementById('file-input');
+  const btn      = document.getElementById('health-btn');
+  if (!plant) { toast('Please enter the plant name', 'error'); return; }
+
+  btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Analyzing...';
+  document.getElementById('diagnosis-result').innerHTML = '';
+
+  const formData = new FormData();
+  formData.append('plant_name', plant);
+  formData.append('symptoms', symptoms);
+  if (fileInput.files[0]) formData.append('image', fileInput.files[0]);
+
+  try {
+    const data = await fetch(`${API}/health/analyze`, { method: 'POST', body: formData }).then(r=>r.json());
+    document.getElementById('diagnosis-result').innerHTML = `
+      <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--leaf);margin-bottom:10px">
+        🔬 Diagnosis for ${data.plant_name}
+      </h3>
+      <div class="diagnosis-box">${data.diagnosis}</div>`;
+    loadHealthLogs();
+  } catch(e) { toast('Analysis failed. Is the backend running?', 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = '🔍 Analyze Plant Health'; }
+}
+
+async function loadHealthLogs() {
+  const el = document.getElementById('health-logs');
+  if (!el) return;
+  try {
+    const data = await fetch(`${API}/health/logs`).then(r=>r.json());
+    if (!data.logs?.length) { el.innerHTML = '<p style="color:rgba(245,240,232,.35);font-size:13px">No health logs yet.</p>'; return; }
+    el.innerHTML = `<div class="log-list">${data.logs.slice(0,5).map(l => `
+      <div class="log-item">
+        <h4>🌿 ${l.plant_name} ${l.has_image ? '📷' : ''}</h4>
+        <p>${l.diagnosis?.substring(0, 120)}...</p>
+        <div class="log-date">${new Date(l.logged_at).toLocaleDateString()}</div>
+      </div>`).join('')}</div>`;
+  } catch(e) {}
+}
+
+// ─── Init ──────────────────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>
