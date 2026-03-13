@@ -1,0 +1,78 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  ACR_NAME: smartgardenacr
+  IMAGE_NAME: smart-garden
+  RESOURCE_GROUP: smart-garden-rg
+  CONTAINER_NAME: smart-garden-app
+  LOCATION: centralindia
+
+stages:
+
+- stage: Build
+  displayName: Build Docker Image
+  jobs:
+    - job: BuildJob
+      pool:
+        name: my-local-agent        # ← self-hosted
+      steps:
+        - task: Docker@2
+          displayName: Build Docker image
+          inputs:
+            command: build
+            dockerfile: backend/Dockerfile
+            buildContext: backend/
+            repository: $(ACR_NAME).azurecr.io/$(IMAGE_NAME)
+            tags: |
+              $(Build.BuildId)
+              latest
+
+- stage: Push
+  displayName: Push to Azure Container Registry
+  dependsOn: Build
+  jobs:
+    - job: PushJob
+      pool:
+        name: my-local-agent        # ← self-hosted
+      steps:
+        - task: AzureCLI@2
+          displayName: Login and push to ACR
+          inputs:
+            azureSubscription: $(AZURE_SERVICE_CONNECTION)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az acr login --name $(ACR_NAME)
+              docker build -t $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.BuildId) backend/
+              docker build -t $(ACR_NAME).azurecr.io/$(IMAGE_NAME):latest backend/
+              docker push $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(Build.BuildId)
+              docker push $(ACR_NAME).azurecr.io/$(IMAGE_NAME):latest
+
+- stage: Deploy
+  displayName: Deploy with Ansible
+  dependsOn: Push
+  jobs:
+    - job: DeployJob
+      pool:
+        name: my-local-agent        # ← self-hosted
+      steps:
+        - script: |
+            sudo apt update
+            sudo apt install ansible -y
+          displayName: Install Ansible
+
+        - task: AzureCLI@2
+          displayName: Run Ansible Playbook
+          inputs:
+            azureSubscription: $(AZURE_SERVICE_CONNECTION)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              export ACR_USERNAME=$(az acr credential show --name $(ACR_NAME) --query "username" -o tsv)
+              export ACR_PASSWORD=$(az acr credential show --name $(ACR_NAME) --query "passwords[0].value" -o tsv)
+              export GROQ_API_KEY=$(GROQ_API_KEY)
+              export MONGO_URL=$(MONGO_URL)
+              ansible-playbook ansible/playbook.yml -i ansible/inventory.ini
