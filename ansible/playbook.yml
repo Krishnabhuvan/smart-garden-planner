@@ -44,6 +44,7 @@
         --cpu 1
         --memory 2
         --location centralindia
+        --no-wait
 
     - name: Show app URL
       debug:
