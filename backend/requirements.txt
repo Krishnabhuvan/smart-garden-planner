@@ -6,4 +6,5 @@ openai
 python-multipart
 pydantic
 python-dotenv
-httpxaiofiles
+httpx
+aiofiles
