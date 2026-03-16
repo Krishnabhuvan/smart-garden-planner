@@ -36,8 +36,8 @@
         --registry-username {{ acr_username.stdout }}
         --registry-password {{ acr_password.stdout }}
         --dns-name-label smart-garden-app
-        --ports 8000
-        --environment-variables
+        --ports 80
+        --secure-environment-variables
           GROQ_API_KEY="{{ lookup('env', 'GROQ_API_KEY') }}"
           MONGO_URL="{{ lookup('env', 'MONGO_URL') }}"
         --os-type Linux
@@ -48,4 +48,4 @@
 
     - name: Show app URL
       debug:
-        msg: "App is live at http://smart-garden-app.centralindia.azurecontainer.io:8000"
+        msg: "App is live at http://smart-garden-app.centralindia.azurecontainer.io"
