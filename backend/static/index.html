@@ -837,3 +837,160 @@ loadDashboard();
 </script>
 </body>
 </html>
+<style>
+@media (max-width: 768px) {
+  .app { flex-direction: column; height: auto; min-height: 100vh; }
+  .sidebar {
+    width: 100%; flex-direction: row; padding: 10px 0;
+    overflow-x: auto; border-right: none;
+    border-bottom: 1px solid rgba(122,158,126,.15);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: none; }
+  .sidebar-footer { display: none; }
+  nav {
+    display: flex; flex-direction: row;
+    padding: 0 10px; gap: 2px;
+    white-space: nowrap; width: 100%;
+  }
+  .nav-item {
+    flex-direction: column; gap: 3px;
+    padding: 6px 10px; font-size: 10px;
+    text-align: center; margin-bottom: 0;
+    border-radius: 8px; min-width: 56px;
+  }
+  .nav-icon { font-size: 18px; width: auto; }
+  .main { padding: 16px 14px; overflow-y: auto; }
+  .page-header h2 { font-size: 22px; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .stats-row { grid-template-columns: 1fr !important; }
+  .plants-grid { grid-template-columns: 1fr !important; }
+  .card { padding: 16px; }
+  .chat-container { height: calc(100dvh - 260px); }
+  .chat-messages { padding: 14px; }
+  .msg { max-width: 90%; }
+  .watering-item { flex-wrap: wrap; gap: 8px; }
+  .upload-zone { padding: 24px; }
+  .stat-card { padding: 16px; }
+  .stat-info .stat-val { font-size: 22px; }
+  .btn { padding: 10px 16px; font-size: 13px; }
+}
+@media (max-width: 400px) {
+  .nav-item { padding: 6px 7px; font-size: 9px; min-width: 46px; }
+  .nav-icon { font-size: 16px; }
+  .main { padding: 12px 10px; }
+}
+</style>
+<style>
+/* ─── Hamburger Button ─────────────────────── */
+.hamburger {
+  display: none;
+  position: fixed; top: 14px; left: 14px; z-index: 1000;
+  background: rgba(10,20,10,.9);
+  border: 1px solid rgba(122,158,126,.3);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  flex-direction: column; gap: 5px;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--leaf);
+  border-radius: 2px;
+  transition: all .3s;
+}
+
+/* ─── Mobile Overlay ───────────────────────── */
+.overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 98;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(2px);
+}
+.overlay.show { display: block; }
+
+@media (max-width: 768px) {
+  .hamburger { display: flex; }
+
+  .sidebar {
+    position: fixed; left: -260px; top: 0;
+    width: 240px !important; height: 100vh;
+    z-index: 99;
+    transition: left .3s ease;
+    flex-direction: column !important;
+    padding: 28px 0 !important;
+    border-right: 1px solid rgba(122,158,126,.15) !important;
+    border-bottom: none !important;
+  }
+  .sidebar.open { left: 0; }
+
+  .logo { display: block !important; }
+  .sidebar-footer { display: block !important; }
+
+  nav {
+    flex-direction: column !important;
+    padding: 20px 12px !important;
+    white-space: normal !important;
+  }
+
+  .nav-item {
+    flex-direction: row !important;
+    gap: 12px !important;
+    padding: 11px 14px !important;
+    font-size: 14px !important;
+    text-align: left !important;
+    min-width: unset !important;
+  }
+
+  .nav-icon { font-size: 18px !important; width: 22px !important; }
+
+  .main { padding: 70px 16px 16px !important; }
+  .page-header h2 { font-size: 22px; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .stats-row { grid-template-columns: 1fr !important; }
+  .plants-grid { grid-template-columns: 1fr !important; }
+  .chat-container { height: calc(100dvh - 200px); }
+  .msg { max-width: 90%; }
+  .watering-item { flex-wrap: wrap; gap: 8px; }
+}
+</style>
+
+<script>
+// ─── Hamburger Menu ─────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  // Add hamburger button
+  const hamburger = document.createElement('div');
+  hamburger.className = 'hamburger';
+  hamburger.id = 'hamburger';
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  document.body.appendChild(hamburger);
+
+  // Add overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.id = 'overlay';
+  document.body.appendChild(overlay);
+
+  const sidebar = document.querySelector('.sidebar');
+
+  hamburger.addEventListener('click', function() {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+
+  overlay.addEventListener('click', function() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+
+  // Close sidebar when nav item clicked on mobile
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+      }
+    });
+  });
+});
+</script>
