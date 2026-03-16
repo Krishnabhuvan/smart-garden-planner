@@ -38,6 +38,7 @@ stages:
       pool:
         name: my-local-agent
       steps:
+        - checkout: none
         - task: AzureCLI@2
           displayName: Login and push to ACR
           inputs:
@@ -59,6 +60,7 @@ stages:
       pool:
         name: my-local-agent
       steps:
+        - checkout: none
         - task: AzureCLI@2
           displayName: Run Ansible Playbook
           inputs:
