@@ -1,6 +1,6 @@
 # 🌿 GardenMind — Smart Garden Planner
 
-An AI-powered full-stack garden planning app built with **FastAPI**, **MongoDB**, and **OpenAI**.
+An AI-powered full-stack garden planning app built with **FastAPI**, **MongoDB**, and **groq**.
 
 ## ✨ Features
 - 🌱 **AI Plant Suggestions** — Get personalized plant recommendations based on location, climate, and space
@@ -38,7 +38,7 @@ smart-garden/
 ### 1. Prerequisites
 - Python 3.10+
 - MongoDB running locally (`mongod`) or MongoDB Atlas URI
-- OpenAI API key → https://platform.openai.com/api-keys
+- groq API key
 
 ### 2. Backend Setup
 ```bash
@@ -98,7 +98,7 @@ API docs available at: **http://localhost:8000/docs**
 |-----------|-----------------------------------|
 | Backend   | FastAPI, Python                   |
 | Database  | MongoDB (via Motor async driver)  |
-| AI        | OpenAI GPT-4o-mini / GPT-4o       |
+| AI        | groq     |
 | Frontend  | Vanilla HTML/CSS/JS               |
 | Dev Tools | Uvicorn, python-dotenv            |
 
