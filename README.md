@@ -2,13 +2,12 @@
 
 An AI-powered full-stack garden planning app built with **FastAPI**, **MongoDB Atlas**, and **Groq LLaMA AI**, deployed on **Microsoft Azure** via a complete DevOps pipeline.
 
-## ✨ Features
-- 🌱 **AI Plant Suggestions** — Personalized plant recommendations based on location, climate, and space
-- 💧 **Watering Schedules** — Track watering frequency with overdue alerts
-- 🤖 **AI Chat Assistant** — Ask gardening questions to GardenBot
-- 🔬 **Plant Health Analyzer** — Upload a photo or describe symptoms for AI diagnosis
+##  Features
+-**AI Plant Suggestions** — Personalized plant recommendations based on location, climate, and space
+- **Watering Schedules** — Track watering frequency with overdue alerts
+- **AI Chat Assistant** — Ask gardening questions to GardenBot
+- **Plant Health Analyzer** — Upload a photo or describe symptoms for AI diagnosis
 
-🌐 **Live Demo:** http://smart-garden-app.centralindia.azurecontainer.io
 
 ---
 
@@ -22,7 +21,7 @@ An AI-powered full-stack garden planning app built with **FastAPI**, **MongoDB A
 
 ---
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```
 smart-garden/
@@ -52,7 +51,7 @@ smart-garden/
 └── azure-pipelines.yml       # CI/CD pipeline
 ```
 
-## 🚀 Setup Instructions
+##  Setup Instructions
 
 ### 1. Prerequisites
 - Python 3.10+
@@ -87,7 +86,7 @@ API docs available at: **http://localhost:9000/docs**
 
 ---
 
-## 🌐 API Endpoints
+##  API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -106,7 +105,7 @@ API docs available at: **http://localhost:9000/docs**
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -123,14 +122,14 @@ API docs available at: **http://localhost:9000/docs**
 
 ---
 
-## ⚙️ DevOps Pipeline
+##  DevOps Pipeline
 GitHub Push → Azure DevOps Pipeline
 → Stage 1: Docker Build
 → Stage 2: Push to ACR
 → Stage 3: Ansible deploys to Azure Container Instances
-→ Live at http://smart-garden-app.centralindia.azurecontainer.io
+→ Live at http://smart-garden-app.centralindia.azurecontainer.io--> now it is not working because cloud charging(fee) me. i am thinking screen shots will be enough as proof.
 
-## 🐳 Docker
+##  Docker
 
 ```bash
 cd backend
@@ -140,7 +139,7 @@ docker run -p 9000:80 --env-file .env smart-garden
 
 ---
 
-## ⚠️ Challenges Faced
+##  Challenges Faced
 
 - Switched AI providers 3 times (OpenAI → Grok → Gemini) before settling on Groq free tier
 - Accidentally committed 222MB Terraform binary — had to rewrite git history using `filter-branch`
