@@ -23,6 +23,8 @@ An AI-powered full-stack garden planning app built with **FastAPI**, **MongoDB A
 ---
 
 ## 🗂️ Project Structure
+
+```
 smart-garden/
 ├── backend/
 │   ├── main.py               # FastAPI app + serves frontend
@@ -48,8 +50,7 @@ smart-garden/
 │   ├── playbook.yml          # Automated deployment playbook
 │   └── inventory.ini
 └── azure-pipelines.yml       # CI/CD pipeline
-
----
+```
 
 ## 🚀 Setup Instructions
 
